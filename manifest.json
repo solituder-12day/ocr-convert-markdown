@@ -1,0 +1,10 @@
+{
+  "id": "pdf-to-markdown-ocr",
+  "name": "PDF to Markdown OCR",
+  "version": "1.0.0",
+  "minAppVersion": "1.5.0",
+  "description": "Convert PDF, Word, Excel, and images to Markdown with OCR (GLM-4V/MiniMax/Gemini)",
+  "description-zh": "将 PDF、Word、Excel 和图片通过 OCR 转换为 Markdown（支持 GLM-4V/MiniMax/Gemini）",
+  "author": "Reasonix",
+  "isDesktopOnly": true
+}

@@ -1,0 +1,22 @@
+{
+  "name": "pdf-to-markdown-ocr",
+  "version": "1.0.0",
+  "description": "Convert PDF, Word, Excel, and images to Markdown with OCR support",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+  },
+  "keywords": ["obsidian", "pdf", "ocr", "markdown"],
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "esbuild": "^0.24.0",
+    "obsidian": "^1.7.0",
+    "typescript": "~5.8.2"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^5.7.284",
+    "mammoth": "^1.10.0",
+    "xlsx": "^0.18.5"
+  }
+}

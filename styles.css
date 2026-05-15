@@ -1,0 +1,28 @@
+.pdf-ocr-modal {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.pdf-ocr-modal .setting-item {
+  border-top: none;
+}
+
+.pdf-ocr-progress {
+  padding: 2em;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.pdf-ocr-result {
+  padding: 1em;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.pdf-ocr-result pre {
+  white-space: pre-wrap;
+  font-size: 0.9em;
+}
