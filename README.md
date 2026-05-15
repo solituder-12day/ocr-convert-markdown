@@ -1,4 +1,4 @@
-# OCR convert Markdown
+# OCR convert Markdown — Obsidian Plugin
 
 Convert PDF, Word, Excel, and images to Markdown notes. Supports text extraction and AI-powered OCR via customizable model list.
 

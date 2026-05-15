@@ -1,4 +1,4 @@
-# OCR convert Markdown
+# OCR convert Markdown — Obsidian 插件
 
 将 PDF、Word、Excel、图片通过多模型 OCR 转换为 Markdown 笔记。模型可自定义。
 
