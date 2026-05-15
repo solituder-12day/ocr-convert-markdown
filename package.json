@@ -1,5 +1,5 @@
 {
-  "name": "pdf-to-markdown-ocr",
+  "name": "ocr-convert-markdown",
   "version": "1.0.0",
   "description": "Convert PDF, Word, Excel, and images to Markdown with OCR support",
   "main": "main.js",

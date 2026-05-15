@@ -1,6 +1,6 @@
 {
-  "id": "pdf-to-markdown-ocr",
-  "name": "PDF to Markdown OCR",
+  "id": "ocr-convert-markdown",
+  "name": "OCR convert Markdown",
   "version": "1.0.0",
   "minAppVersion": "1.5.0",
   "description": "Convert PDF, Word, Excel, and images to Markdown with OCR (GLM-4V/MiniMax/Gemini)",

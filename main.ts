@@ -399,7 +399,7 @@ class PdfOcrSettingTab extends PluginSettingTab {
     const s = this.plugin.settings;
     const st = this.plugin.t("settings") as any;
 
-    containerEl.createEl("h2", { text: "PDF to Markdown OCR" });
+    containerEl.createEl("h2", { text: "OCR convert Markdown" });
 
     new Setting(containerEl)
       .setName(st.language)

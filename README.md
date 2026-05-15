@@ -1,4 +1,4 @@
-# PDF to Markdown OCR
+# OCR convert Markdown
 
 将 PDF、Word、Excel、图片一键转换为 Markdown 笔记。支持文本提取和 AI OCR。
 
