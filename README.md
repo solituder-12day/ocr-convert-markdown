@@ -19,7 +19,7 @@ Convert PDF, Word, Excel, and images to Markdown notes. Supports text extraction
 
 ## Features
 
-- **PDF** — Extract text directly; scanned PDFs auto-OCR (4 concurrent pages)
+- **PDF** — Extract text directly; scanned PDFs auto-OCR (streaming page-by-page)
 - **Word** — Preserves headings, bold, and lists
 - **Excel** — Multi-sheet extraction as Markdown tables; dates auto-formatted
 - **Images** — PNG / JPG / WEBP → OCR to Markdown
@@ -67,7 +67,7 @@ Download `main.js`, `manifest.json`, `styles.css` into `vault/.obsidian/plugins/
 
 ```bash
 git clone git@github.com:solituder-12day/ocr-convert-markdown.git
-cd convertMD_obsidian
+cd ocr-convert-markdown
 npm install
 npm run build
 ```

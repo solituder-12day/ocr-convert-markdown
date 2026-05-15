@@ -19,7 +19,7 @@
 
 ## 功能
 
-- **PDF 转换** — 文字型直接提取；扫描件自动 OCR（4 页并发）
+- **PDF 转换** — 文字型直接提取；扫描件自动 OCR（逐页流式处理）
 - **Word 转换** — 保留标题、加粗、列表层级
 - **Excel 转换** — 多工作表原样转 Markdown 表格；日期自动格式化
 - **图片 OCR** — PNG / JPG / WEBP → OCR 识别
@@ -57,7 +57,7 @@
 
 ```bash
 git clone git@github.com:solituder-12day/ocr-convert-markdown.git
-cd convertMD_obsidian
+cd ocr-convert-markdown
 npm install
 npm run build
 ```
