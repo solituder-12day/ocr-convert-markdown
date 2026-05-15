@@ -1,28 +1,88 @@
-.pdf-ocr-modal {
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.pdf-ocr-modal .setting-item {
-  border-top: none;
-}
-
-.pdf-ocr-progress {
-  padding: 2em;
-  text-align: center;
-  color: var(--text-muted);
-}
-
-.pdf-ocr-result {
-  padding: 1em;
+.model-card {
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
-  background: var(--background-primary);
-  max-height: 60vh;
-  overflow-y: auto;
+  margin-bottom: 1em;
+  overflow: hidden;
 }
 
-.pdf-ocr-result pre {
-  white-space: pre-wrap;
+.model-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6em 1em;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.model-card-body {
+  padding: 0.8em 1em 1em;
+}
+
+.model-card-body .setting-item {
+  border: none;
+  padding: 0;
+  margin-bottom: 0.6em;
+}
+
+.model-card-body .setting-item-control {
+  flex: 1;
+}
+
+.model-card-body textarea,
+.model-card-body input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: monospace;
+  font-size: 0.85em;
+}
+
+.ocr-header {
+  text-align: center;
+  padding: 1.5em 0 1em;
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: 1.5em;
+}
+
+.ocr-header h2 {
+  margin: 0;
+}
+
+.ocr-header p {
+  color: var(--text-muted);
   font-size: 0.9em;
+  margin-top: 0.3em;
+}
+
+.ocr-btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.3em;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 1em;
+  line-height: 1;
+}
+
+.ocr-btn-icon:hover {
+  background: var(--background-modifier-hover);
+}
+
+.ocr-add-btn {
+  display: block;
+  margin: 1em auto 2em;
+  padding: 0.5em 1.5em;
+  border-radius: 6px;
+  border: 1px dashed var(--background-modifier-border);
+  background: var(--background-secondary);
+  cursor: pointer;
+  color: var(--text-normal);
+  font-size: 0.9em;
+}
+
+.ocr-add-btn:hover {
+  background: var(--background-modifier-hover);
 }
