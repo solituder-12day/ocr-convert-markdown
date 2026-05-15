@@ -1,48 +1,48 @@
 # OCR convert Markdown
 
-将 PDF、Word、Excel、图片一键转换为 Markdown 笔记。支持文本提取和 AI OCR。
+Convert PDF, Word, Excel, and images to Markdown notes with one click. Supports text extraction and AI-powered OCR (GLM-4V / MiniMax / Gemini).
 
-Convert PDF, Word, Excel, and images to Markdown notes. Supports text extraction and AI-powered OCR.
+## Quick Start
 
-## 快速开始
+1. Install and enable the plugin
+2. Go to **Settings → OCR convert Markdown**, enter at least one API Key
+3. **Right-click** a .pdf / .docx / .xlsx / .png / .jpg file → **Convert to Markdown**
+4. An `.md` file is created alongside the original
 
-1. 安装后启用插件
-2. 打开「设置 → PDF to Markdown OCR」，填入至少一个 API Key
-3. **右键** vault 中的 .pdf / .docx / .xlsx / .png / .jpg 文件 →「转换为 Markdown」
-4. 自动在同目录生成 `.md` 文件
+## Usage
 
-## 使用方式
+| Method | Action |
+|--------|--------|
+| Right-click file | File explorer → "Convert to Markdown" |
+| Command palette | `Ctrl+P` → "Convert to Markdown" (works on currently open file) |
+| Ribbon icon | Click the icon in the left toolbar (works on currently open file) |
 
-| 方式 | 操作 |
-|------|------|
-| 右键文件 | 在文件管理器右键 →「转换为 Markdown」 |
-| 命令面板 | `Ctrl+P` →「Convert to Markdown」（对当前打开的文件生效） |
-| 工具栏按钮 | 点击左侧 ribbon 图标 → 对当前打开的文件生效 |
+## Features
 
-## 功能
+- **PDF** — Extract text directly; scanned PDFs auto-OCR
+- **Word** — Preserves headings, bold, and list hierarchy
+- **Excel** — Multi-sheet extraction rendered as Markdown tables
+- **Images** — PNG / JPG / WEBP → OCR to Markdown
+- **Multi-model OCR** — GLM-4V / MiniMax / Gemini with auto fallback
+- **Bilingual UI** — English / Chinese toggle in settings
 
-- **PDF** — 文字型直接提取；扫描件自动 OCR
-- **Word** — 保留标题/加粗/列表层级
-- **Excel** — 多工作表原样转 Markdown 表格
-- **图片** — PNG/JPG/WEBP → OCR 识别为 Markdown
-- **多模型** — GLM-4V / MiniMax / Gemini，自动 fallback
-- **中英文** — 设置页一键切换
+## Configuration
 
-## 配置
-
-| 设置 | 说明 |
-|------|------|
-| 界面语言 | 中文 / English |
-| OCR 模型 | 自动 / GLM-4V / MiniMax / Gemini |
+| Setting | Description |
+|---------|-------------|
+| Language | English / 中文 |
+| OCR Model | Auto / GLM-4V / MiniMax / Gemini |
 | GLM API Key | [open.bigmodel.cn](https://open.bigmodel.cn) |
 | MiniMax API Key | [platform.minimax.com](https://platform.minimax.com) |
 | Gemini API Key | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
 
-至少填一个 Key。填多个时「自动」模式会依次尝试。
+At least one API Key is required. If multiple keys are configured, "Auto" mode tries GLM → MiniMax → Gemini in order.
 
-## 安装
+## Installation
 
-下载 `main.js`、`manifest.json`、`styles.css` 放入 `vault/.obsidian/plugins/pdf-to-markdown-ocr/` 目录。
+Download `main.js`, `manifest.json`, and `styles.css` into `vault/.obsidian/plugins/ocr-convert-markdown/`.
+
+### Build from source
 
 ```bash
 git clone git@github.com:solituder-12day/convertMD_obsidian.git
@@ -51,10 +51,30 @@ npm install
 npm run build
 ```
 
-## 技术栈
+## Pipeline
+
+```
+Input file
+  ├── PDF ─── Text-based → pdfjs extraction
+  │           Scanned → render pages → OCR
+  ├── Word ─── mammoth → HTML → Markdown
+  ├── Excel ── SheetJS → multi-sheet → Markdown tables
+  └── Image ── Base64 → GLM-4V / MiniMax / Gemini
+                              ↓
+                  Output .md to vault
+```
+
+## Development
+
+```bash
+npm run dev       # Watch mode
+npm run build     # Production build
+```
+
+## Tech Stack
 
 **TypeScript + esbuild** / **pdfjs-dist** (PDF) / **mammoth.js** (Word) / **SheetJS** (Excel) / **GLM-4V · MiniMax · Gemini** (OCR)
 
-## 许可
+## License
 
 MIT
