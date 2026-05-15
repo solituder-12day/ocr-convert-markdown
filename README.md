@@ -66,7 +66,7 @@ Use the ↑↓ arrows to reorder. Models are tried top-to-bottom; on failure the
 Download `main.js`, `manifest.json`, `styles.css` into `vault/.obsidian/plugins/ocr-convert-markdown/`.
 
 ```bash
-git clone git@github.com:solituder-12day/convertMD_obsidian.git
+git clone git@github.com:solituder-12day/ocr-convert-markdown.git
 cd convertMD_obsidian
 npm install
 npm run build
