@@ -43,12 +43,37 @@ function log(level: "info" | "warn" | "error" | "debug", msg: string, data?: any
   }
 }
 
-const DEFAULT_MODELS: OcrModelConfig[] = [
-  { id: "glm",       name: "GLM-4V (高精度)",       provider: "openai", apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",                                                                                        apiKey: "", modelName: "glm-4v",        maxTokens: 16384, enabled: true },
-  { id: "glm-fast",  name: "GLM-4V-Flash (快速)",   provider: "openai", apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",                                                                                        apiKey: "", modelName: "glm-4v-flash",  maxTokens: 16384, enabled: true },
-  { id: "minimax",   name: "MiniMax-VL",            provider: "openai", apiUrl: "https://api.minimax.chat/v1/chat/completions",                                                                                                 apiKey: "", modelName: "MiniMax-VL-01", maxTokens: 8192, enabled: true },
-  { id: "gemini",    name: "Gemini 2.5 Flash",      provider: "gemini", apiUrl: "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",                                                         apiKey: "", modelName: "gemini-2.5-flash", maxTokens: 8192, enabled: true },
+// Presets for the "Add Model" dialog — entries with non-empty `id` are default enabled models
+const OCR_PRESETS: OcrModelConfig[] = [
+  // --- Chinese providers ---
+  { id: "glm",       name: "GLM-4V (智谱)",                 provider: "openai", apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",                                    apiKey: "", modelName: "glm-4v",               maxTokens: 16384, enabled: true },
+  { id: "glm-flash", name: "GLM-4V-Flash (智谱)",           provider: "openai", apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",                                    apiKey: "", modelName: "glm-4v-flash",         maxTokens: 16384, enabled: true },
+  { id: "minimax",   name: "MiniMax-VL (MiniMax)",           provider: "openai", apiUrl: "https://api.minimax.chat/v1/chat/completions",                                             apiKey: "", modelName: "MiniMax-VL-01",        maxTokens: 8192, enabled: true },
+  { id: "", name: "Qwen-VL-Max (阿里)",             provider: "openai", apiUrl: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",                  apiKey: "", modelName: "qwen-vl-max",           maxTokens: 16384, enabled: true },
+  { id: "", name: "Qwen-VL-Plus (阿里)",            provider: "openai", apiUrl: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",                  apiKey: "", modelName: "qwen-vl-plus",          maxTokens: 16384, enabled: true },
+  { id: "", name: "DeepSeek-VL (深度求索)",         provider: "openai", apiUrl: "https://platform.deepseek.com/api/paas/v4/chat/completions",                                apiKey: "", modelName: "deepseek-vl2",          maxTokens: 16384, enabled: true },
+  { id: "", name: "Moonshot-VL (月之暗面)",         provider: "openai", apiUrl: "https://api.moonshot.cn/v1/chat/completions",                                               apiKey: "", modelName: "moonshot-v1-8k",        maxTokens: 8192, enabled: true },
+  // --- Google ---
+  { id: "gemini", name: "Gemini 2.5 Flash (Google)",      provider: "gemini", apiUrl: "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",    apiKey: "", modelName: "gemini-2.5-flash",      maxTokens: 8192, enabled: true },
+  { id: "", name: "Gemini 2.5 Pro (Google)",        provider: "gemini", apiUrl: "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent",      apiKey: "", modelName: "gemini-2.5-pro",        maxTokens: 8192, enabled: true },
+  // --- OpenAI ---
+  { id: "", name: "GPT-4o (OpenAI)",                provider: "openai", apiUrl: "https://api.openai.com/v1/chat/completions",                                               apiKey: "", modelName: "gpt-4o",                maxTokens: 16384, enabled: true },
+  { id: "", name: "GPT-4o-mini (OpenAI)",           provider: "openai", apiUrl: "https://api.openai.com/v1/chat/completions",                                               apiKey: "", modelName: "gpt-4o-mini",           maxTokens: 16384, enabled: true },
+  // --- Anthropic ---
+  { id: "", name: "Claude 3.5 Sonnet (Anthropic)",  provider: "openai", apiUrl: "https://api.anthropic.com/v1/messages",                                                     apiKey: "", modelName: "claude-3-5-sonnet",     maxTokens: 8192, enabled: true },
+  { id: "", name: "Claude 3 Haiku (Anthropic)",     provider: "openai", apiUrl: "https://api.anthropic.com/v1/messages",                                                     apiKey: "", modelName: "claude-3-haiku",        maxTokens: 8192, enabled: true },
+  // --- Mistral ---
+  { id: "", name: "Pixtral Large (Mistral)",        provider: "openai", apiUrl: "https://api.mistral.ai/v1/chat/completions",                                                apiKey: "", modelName: "pixtral-large",         maxTokens: 8192, enabled: true },
+  { id: "", name: "Mistral Small (Mistral)",        provider: "openai", apiUrl: "https://api.mistral.ai/v1/chat/completions",                                                apiKey: "", modelName: "mistral-small",         maxTokens: 4096, enabled: true },
+  // --- Meta ---
+  { id: "", name: "Llama 3.2 Vision (Groq)",        provider: "openai", apiUrl: "https://api.groq.com/openai/v1/chat/completions",                                           apiKey: "", modelName: "llama-3.2-11b-vision",  maxTokens: 8192, enabled: true },
+  { id: "", name: "Llama 3.2 Vision (Together)",    provider: "openai", apiUrl: "https://api.together.xyz/v1/chat/completions",                                               apiKey: "", modelName: "meta-llama/Llama-3.2-11B-Vision-Instruct", maxTokens: 8192, enabled: true },
+  // --- OpenRouter (multi-provider) ---
+  { id: "", name: "OpenRouter (any model)",          provider: "openai", apiUrl: "https://openrouter.ai/api/v1/chat/completions",                                             apiKey: "", modelName: "openai/gpt-4o",         maxTokens: 16384, enabled: true },
 ];
+
+// Default models are presets with non-empty id
+const DEFAULT_MODELS: OcrModelConfig[] = OCR_PRESETS.filter((p) => p.id !== "").map((p) => ({ ...p }));
 
 const DEFAULT_SETTINGS: PdfOcrSettings = {
   models: DEFAULT_MODELS,
@@ -143,7 +168,7 @@ const SYSTEM_PROMPT = "提取图片中所有文字，保持原文排版。\\n\\n
   }
 }
 
-// Injected by esbuild define at build time — contains the pdfjs worker as base64 data URL
+// PDF.js worker URL — injected by esbuild define at build time
 declare const PDFJS_WORKER_URL: string;
 
 // ─── Plugin ──────────────────────────────────────────────
@@ -231,10 +256,10 @@ export default class PdfOcrPlugin extends Plugin {
           reader.readAsArrayBuffer(file);
         });
         let markdown = "";
-        if (ext === ".pdf") markdown = await this.processPdfBuf(buf, file.name, hasKey);
-        else if (ext === ".docx") markdown = await this.processDocxBuf(buf);
-        else if (ext === ".xlsx") markdown = await this.processXlsxBuf(buf);
-        else markdown = await this.processImageBuf(buf, file.type);
+        if (ext === ".pdf") markdown = await this.processPdf(buf, hasKey);
+        else if (ext === ".docx") markdown = await this.processDocx(buf);
+        else if (ext === ".xlsx") markdown = await this.processXlsx(buf);
+        else markdown = await this.processImage(buf, file.type);
 
         const outName = file.name.replace(/\.[^.]+$/, "") + ".md";
         const outDir = this.settings.outputDir || "";
@@ -280,15 +305,14 @@ export default class PdfOcrPlugin extends Plugin {
 
     try {
       const data = await this.app.vault.readBinary(file);
-      const blob = new Blob([data]);
-      const jsFile = new File([blob], file.name, { type: this.getMimeType(ext) });
+      const hasKey = activeModels.length > 0;
 
       let markdown = "";
       const start = Date.now();
-      if (ext === ".pdf") markdown = await this.processPdf(jsFile, activeModels.length > 0);
-      else if (ext === ".docx") markdown = await this.processDocx(jsFile);
-      else if (ext === ".xlsx") markdown = await this.processXlsx(jsFile);
-      else markdown = await this.processImage(jsFile);
+      if (ext === ".pdf") markdown = await this.processPdf(data, hasKey);
+      else if (ext === ".docx") markdown = await this.processDocx(data);
+      else if (ext === ".xlsx") markdown = await this.processXlsx(data);
+      else markdown = await this.processImage(data, this.getMimeType(ext));
       this.log("info", `Converted in ${((Date.now() - start) / 1000).toFixed(1)}s, output length: ${markdown.length} chars`);
 
       const outName = file.basename + ".md";
@@ -326,12 +350,9 @@ export default class PdfOcrPlugin extends Plugin {
   }
 
   // ─── PDF ─────────────────────────────────────────────
-  async processPdf(file: File, hasKey: boolean): Promise<string> {
-    const buffer = await file.arrayBuffer();
+  async processPdf(buffer: ArrayBuffer, hasKey: boolean): Promise<string> {
     const pdfjsLib = await import("pdfjs-dist");
-    if (typeof PDFJS_WORKER_URL !== "undefined") {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
-    }
+    pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
     const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
     this.log("info", `PDF: ${pdf.numPages} pages`);
 
@@ -365,27 +386,31 @@ export default class PdfOcrPlugin extends Plugin {
       return result || "[无文字内容]";
     }
 
-    // Scanned PDF — render all pages, then OCR in parallel (match web)
-    this.log("info", "Scanned PDF detected, rendering pages for OCR");
-    const pageImages: string[] = [];
-    for (let p = 1; p <= pdf.numPages; p++) {
-      const page = await pdf.getPage(p);
-      const vp = page.getViewport({ scale: 2.5 });
-      const canvas = document.createElement("canvas");
-      canvas.width = vp.width;
-      canvas.height = vp.height;
-      await page.render({ canvas, viewport: vp } as any).promise;
-      pageImages.push(canvas.toDataURL("image/png").split(",")[1]);
-    }
-    // Parallel OCR (concurrency: 4)
-    const concurrency = 4;
-    const pageTexts: string[] = new Array(pageImages.length);
+    // Scanned PDF — render + OCR page by page (bounded concurrency to limit memory)
+    this.log("info", "Scanned PDF detected, rendering + OCR page by page");
+    const totalPages = pdf.numPages;
+    const pageTexts: string[] = new Array(totalPages);
+    const concurrency = 2; // keep memory low: render → OCR → release
     let nextIdx = 0;
     const worker = async () => {
-      while (nextIdx < pageImages.length) {
+      while (nextIdx < totalPages) {
         const idx = nextIdx++;
-        this.log("info", `OCR page ${idx + 1}/${pageImages.length}`);
-        pageTexts[idx] = await this.ocr(pageImages[idx], "image/png");
+        this.log("info", `OCR page ${idx + 1}/${totalPages}`);
+        const page = await pdf.getPage(idx + 1);
+        const vp = page.getViewport({ scale: 2.5 });
+        const canvas = document.createElement("canvas");
+        canvas.width = vp.width;
+        canvas.height = vp.height;
+        try {
+          await page.render({ canvas, viewport: vp } as any).promise;
+          const b64 = canvas.toDataURL("image/png").split(",")[1];
+          pageTexts[idx] = await this.ocr(b64, "image/png");
+        } finally {
+          // Release canvas memory immediately
+          canvas.width = 0;
+          canvas.height = 0;
+          (page as any).cleanup?.();
+        }
       }
     };
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
@@ -394,10 +419,9 @@ export default class PdfOcrPlugin extends Plugin {
   }
 
   // ─── Word ────────────────────────────────────────────
-  async processDocx(file: File): Promise<string> {
-    const buffer = await file.arrayBuffer();
+  async processDocx(buffer: ArrayBuffer): Promise<string> {
     if (!buffer || buffer.byteLength === 0) throw new Error("Empty file");
-    const result = await mammoth.convertToHtml({ arrayBuffer: new Uint8Array(buffer).buffer as ArrayBuffer });
+    const result = await mammoth.convertToHtml({ buffer: Buffer.from(buffer) });
     return result.value
       .replace(/<h1>/g, "# ").replace(/<\/h1>/g, "\n\n")
       .replace(/<h2>/g, "## ").replace(/<\/h2>/g, "\n\n")
@@ -410,9 +434,8 @@ export default class PdfOcrPlugin extends Plugin {
   }
 
   // ─── Excel ───────────────────────────────────────────
-  async processXlsx(file: File): Promise<string> {
-    const buffer = await file.arrayBuffer();
-    const wb = XLSX.read(buffer, { type: "array" });
+  async processXlsx(buffer: ArrayBuffer): Promise<string> {
+    const wb = XLSX.read(new Uint8Array(buffer), { type: "array" });
     const lines: string[] = [];
     for (let s = 0; s < wb.SheetNames.length; s++) {
       const name = wb.SheetNames[s];
@@ -448,9 +471,13 @@ export default class PdfOcrPlugin extends Plugin {
       }
       if (!data.length) continue;
       if (s > 0) lines.push("---");
-      let maxCol = data[0].length - 1;
-      while (maxCol > 0 && data.every((r: string[]) => r[maxCol] === "")) maxCol--;
-      const trimmed = data.map((r: string[]) => r.slice(0, maxCol + 1));
+      // Trim fully-empty leading & trailing columns
+      const colCount = Math.max(...data.map((r) => r.length));
+      let minCol = 0;
+      let maxCol = colCount - 1;
+      while (minCol <= maxCol && data.every((r: string[]) => !r[minCol] || r[minCol] === "")) minCol++;
+      while (maxCol >= minCol && data.every((r: string[]) => !r[maxCol] || r[maxCol] === "")) maxCol--;
+      const trimmed = data.map((r: string[]) => r.slice(minCol, maxCol + 1));
       lines.push(`## 📊 ${name}`);
       const esc = (x: string) => String(x).replace(/\|/g, "\\|").replace(/\n/g, "<br>");
       lines.push("| " + trimmed[0].map(esc).join(" | ") + " |");
@@ -464,89 +491,6 @@ export default class PdfOcrPlugin extends Plugin {
   }
 
   // ─── Image / OCR ─────────────────────────────────────
-  async processDocxBuf(buf: ArrayBuffer): Promise<string> {
-    if (!buf || buf.byteLength === 0) throw new Error("Empty file");
-    const result = await mammoth.convertToHtml({ buffer: Buffer.from(buf) });
-    return result.value
-      .replace(/<h1>/g, "# ").replace(/<\/h1>/g, "\n\n")
-      .replace(/<h2>/g, "## ").replace(/<\/h2>/g, "\n\n")
-      .replace(/<strong>/g, "**").replace(/<\/strong>/g, "**")
-      .replace(/<li>/g, "- ").replace(/<\/li>/g, "\n")
-      .replace(/<p>/g, "").replace(/<\/p>/g, "\n\n")
-      .replace(/<br\s*\/?>/g, "\n").replace(/<[^>]+>/g, "")
-      .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
-      .replace(/\n{3,}/g, "\n\n").trim();
-  }
-
-  async processXlsxBuf(buf: ArrayBuffer): Promise<string> {
-    if (!buf || buf.byteLength === 0) throw new Error("Empty file");
-    const wb = XLSX.read(buf, { type: "array" });
-    const lines: string[] = [];
-    for (let s = 0; s < wb.SheetNames.length; s++) {
-      const name = wb.SheetNames[s];
-      const sheet = wb.Sheets[name];
-      if (!sheet["!ref"]) continue;
-      const range = XLSX.utils.decode_range(sheet["!ref"]);
-      const data: string[][] = [];
-      for (let r = range.s.r; r <= range.e.r; r++) {
-        const row: string[] = [];
-        for (let c = range.s.c; c <= range.e.c; c++) {
-          const addr = XLSX.utils.encode_cell({ r, c });
-          const cell = sheet[addr];
-          let val = "";
-          if (cell) {
-            if (cell.t === "s") {
-              val = String(cell.w ?? cell.v ?? "");
-            } else if (cell.t === "n" && typeof cell.v === "number" && cell.v > 40000 && cell.v < 60000) {
-              const d = XLSX.SSF.parse_date_code(cell.v);
-              if (d) {
-                const pad = (n: number) => String(Math.floor(n)).padStart(2, "0");
-                val = `${d.y}/${d.m}/${d.d} ${pad(d.H)}:${pad(d.M)}:${pad(d.S)}`;
-              } else {
-                val = String(cell.w ?? cell.v ?? "");
-              }
-            } else {
-              val = String(cell.w ?? cell.v ?? "");
-            }
-          }
-          row.push(val);
-        }
-        data.push(row);
-      }
-      if (!data.length) continue;
-      if (s > 0) lines.push("---");
-      let maxCol = data[0].length - 1;
-      while (maxCol > 0 && data.every((r: string[]) => r[maxCol] === "")) maxCol--;
-      const trimmed = data.map((r: string[]) => r.slice(0, maxCol + 1));
-      lines.push(`## 📊 ${name}`);
-      const esc = (x: string) => String(x).replace(/\|/g, "\\|").replace(/\n/g, "<br>");
-      lines.push("| " + trimmed[0].map(esc).join(" | ") + " |");
-      lines.push("|" + trimmed[0].map(() => ":---|").join(""));
-      for (let r = 1; r < trimmed.length; r++) {
-        const v = trimmed[r].map(esc);
-        if (v.some((x: string) => x.trim())) lines.push("| " + v.join(" | ") + " |");
-      }
-    }
-    return lines.join("\n");
-  }
-
-  async processPdfBuf(buf: ArrayBuffer, name: string, hasKey: boolean): Promise<string> {
-    return this.processPdf(new File([buf], name, { type: "application/pdf" }), hasKey);
-  }
-
-  async processImageBuf(buf: ArrayBuffer, mime: string): Promise<string> {
-    const blob = new Blob([buf], { type: mime });
-    return new Promise((res, rej) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const b64 = (reader.result as string).split(",")[1];
-        this.ocr(b64, mime).then(res).catch(rej);
-      };
-      reader.onerror = () => rej(new Error("Failed to encode image"));
-      reader.readAsDataURL(blob);
-    });
-  }
-
   cleanOutput(text: string): string {
     return text
       .replace(/!\[[^\]]*\]\([^)]+\)/g, "")
@@ -557,13 +501,17 @@ export default class PdfOcrPlugin extends Plugin {
       .trim();
   }
 
-  async processImage(file: File): Promise<string> {
-    const reader = new FileReader();
-    const b64 = await new Promise<string>((resolve) => {
-      reader.onload = () => resolve((reader.result as string).split(",")[1]);
-      reader.readAsDataURL(file);
+  async processImage(buffer: ArrayBuffer, mime: string): Promise<string> {
+    const blob = new Blob([buffer], { type: mime });
+    return new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const b64 = (reader.result as string).split(",")[1];
+        this.ocr(b64, mime).then(res).catch(rej);
+      };
+      reader.onerror = () => rej(new Error("Failed to encode image"));
+      reader.readAsDataURL(blob);
     });
-    return this.ocr(b64, file.type);
   }
 
   async ocrImage(b64: string, mime: string): Promise<string> {
@@ -959,12 +907,25 @@ class PdfOcrSettingTab extends PluginSettingTab {
       });
     });
 
-    // ── Add model button ──
+    // ── Add model button with preset selector ──
     const addRow = containerEl.createDiv({
+      attr: { style: "text-align:center;margin:1em 0 2em;" },
+    });
+
+    // Preset selector
+    const presetsDiv = addRow.createDiv({ attr: { style: "display:flex;gap:0.5em;justify-content:center;margin-bottom:0.5em;flex-wrap:wrap;" } });
+    const presetSelect = presetsDiv.createEl("select", {
       attr: {
-        style: "text-align:center;margin:1em 0 2em;",
+        style:
+          "padding:0.4em 0.6em;border-radius:6px;border:1px solid var(--background-modifier-border);" +
+          "background:var(--background-primary);color:var(--text-normal);font-size:0.85em;min-width:10em;",
       },
     });
+    presetSelect.createEl("option", { value: "", text: "— Preset models —" });
+    for (let i = 0; i < OCR_PRESETS.length; i++) {
+      presetSelect.createEl("option", { value: String(i), text: OCR_PRESETS[i].name });
+    }
+
     const addBtn = addRow.createEl("button", {
       text: `+ ${t("addModel")}`,
       attr: {
@@ -974,16 +935,23 @@ class PdfOcrSettingTab extends PluginSettingTab {
       },
     });
     addBtn.addEventListener("click", async () => {
-      s.models.push({
-        id: "custom-" + Date.now(),
-        name: "New Model",
-        provider: "openai",
-        apiUrl: "https://api.openai.com/v1/chat/completions",
-        apiKey: "",
-        modelName: "gpt-4o",
-        maxTokens: 8192,
-        enabled: true,
-      });
+      const idx = parseInt(presetSelect.value);
+      if (!isNaN(idx) && OCR_PRESETS[idx]) {
+        // Clone from preset
+        s.models.push({ ...OCR_PRESETS[idx], id: "custom-" + Date.now() });
+      } else {
+        // Default blank
+        s.models.push({
+          id: "custom-" + Date.now(),
+          name: "New Model",
+          provider: "openai",
+          apiUrl: "https://api.openai.com/v1/chat/completions",
+          apiKey: "",
+          modelName: "gpt-4o",
+          maxTokens: 8192,
+          enabled: true,
+        });
+      }
       await this.plugin.saveSettings();
       this.display();
     });

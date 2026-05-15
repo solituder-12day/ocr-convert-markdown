@@ -5,14 +5,14 @@ import { resolve } from 'path';
 
 const production = process.argv[2] === 'production';
 
-// Read the pdfjs worker file and encode as base64 data URL for inline use
-const workerPath = resolve('node_modules/pdfjs-dist/build/pdf.worker.min.mjs');
-const workerCode = readFileSync(workerPath, 'utf-8');
+// Embed the pdfjs worker as a base64 data URL at build time —
+// Obsidian's sandboxed renderer can't reliably load external files at runtime,
+// but data URLs work for Web Workers.
+const workerSrc = resolve('node_modules/pdfjs-dist/build/pdf.worker.min.mjs');
+const workerCode = readFileSync(workerSrc, 'utf-8');
 const workerB64 = Buffer.from(workerCode).toString('base64');
 const workerDataUrl = `data:application/javascript;base64,${workerB64}`;
 
-// Replace the placeholder in main.ts before bundling
-// We inject it via a define
 await esbuild.build({
   entryPoints: ['main.ts'],
   bundle: true,
@@ -24,6 +24,6 @@ await esbuild.build({
   minify: production,
   outfile: 'main.js',
   define: {
-    'PDFJS_WORKER_URL': JSON.stringify(workerDataUrl),
+    PDFJS_WORKER_URL: JSON.stringify(workerDataUrl),
   },
 }).catch(() => process.exit(1));
