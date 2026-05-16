@@ -100,6 +100,10 @@ const ST = {
   moveDown: "下移",
   openai: "OpenAI 兼容",
   gemini: "Gemini",
+  outputDir: "输出目录",
+  outputDirDesc: "保存到：{vaultRoot}/{输入路径}/xxx.md",
+  debugMode: "调试模式",
+  debugModeDesc: "在开发者工具控制台输出详细日志 (Ctrl+Shift+I)",
 };
 
 const ST_EN: Record<string, string> = {
@@ -118,6 +122,10 @@ const ST_EN: Record<string, string> = {
   moveDown: "Move Down",
   openai: "OpenAI Compatible",
   gemini: "Gemini",
+  outputDir: "Output Directory",
+  outputDirDesc: "Saved to: {vaultRoot}/{input path}/xxx.md",
+  debugMode: "Debug Mode",
+  debugModeDesc: "Output detailed logs to DevTools console (Ctrl+Shift+I)",
 };
 
 const T: Record<string, Record<string, string>> = {
@@ -683,27 +691,32 @@ class PdfOcrSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("🐛 Debug Mode")
-      .setDesc("Output detailed logs to DevTools console (Ctrl+Shift+I)")
-      .addToggle((t) =>
-        t.setValue(s.debugMode).onChange(async (v) => {
+      .setName("🐛 " + t("debugMode"))
+      .setDesc(t("debugModeDesc"))
+      .addToggle((tl) =>
+        tl.setValue(s.debugMode).onChange(async (v) => {
           s.debugMode = v;
           await this.plugin.saveSettings();
           if (v) log("info", "Debug mode enabled");
         })
       );
 
-    new Setting(containerEl)
-      .setName("📁 Output Directory")
-      .setDesc("Where to save converted .md files (blank = vault root)")
+    const vaultRoot = (this.app.vault.adapter as any).basePath || this.app.vault.getRoot().path;
+    const dirSetting = new Setting(containerEl)
+      .setName("📁 " + t("outputDir"))
+      .setDesc(t("outputDirDesc").replace(/\{vaultRoot\}/g, vaultRoot))
       .addText((tx) => {
-        tx.setPlaceholder("Vault root").setValue(s.outputDir).onChange(async (v) => {
+        tx.setPlaceholder(vaultRoot).setValue(s.outputDir).onChange(async (v) => {
           s.outputDir = v.trim();
           await this.plugin.saveSettings();
         });
         tx.inputEl.style.width = "100%";
         return tx;
       });
+    dirSetting.settingEl.style.cssText = "flex-direction:column;align-items:stretch;";
+    dirSetting.infoEl.style.cssText = "width:100%;";
+    dirSetting.controlEl.style.cssText = "width:100%;justify-content:stretch;";
+    dirSetting.descEl.style.cssText = "font-size:0.85em;color:var(--text-muted);";
 
     // ── Model list ──
     containerEl.createEl("h3", {
