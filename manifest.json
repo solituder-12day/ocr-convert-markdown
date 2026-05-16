@@ -6,5 +6,6 @@
   "description": "Convert PDF, Word, Excel, and images to Markdown with multi-model OCR (customizable providers)",
   "description-zh": "将 PDF、Word、Excel、图片通过多模型 OCR 转换为 Markdown（模型可自定义）",
   "author": "AIXMF",
+  "authorUrl": "https://github.com/solituder-12day/ocr-convert-markdown",
   "isDesktopOnly": true
 }
