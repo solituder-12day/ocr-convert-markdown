@@ -68,7 +68,7 @@ npm run build
 
 ## 作者
 
-AIXMF
+solituder-12day
 
 ## 许可
 
