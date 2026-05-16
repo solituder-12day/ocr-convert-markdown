@@ -72,6 +72,33 @@ npm install
 npm run build
 ```
 
+## Changelog
+
+### v1.2.0 — Memory Optimization
+
+Reduced runtime memory footprint across all conversion pipelines:
+
+- **PDF** — `pdf.destroy()` in `finally` block releases document object and internal page cache after conversion; text extraction phase now calls `page.cleanup()` per page; OCR path clears `texts`/`result` before rendering; base64 strings set to `null` after use; `Uint8Array` copy prevents pdfjs from holding the original buffer
+- **Excel** — Workbook sheet references deleted in `finally` block after conversion completes
+- **Images** — Removed redundant Blob + FileReader pipeline; base64 encoding now uses `Buffer.from().toString("base64")` directly, eliminating 2 intermediate copies
+- **General** — Source `ArrayBuffer` from `vault.readBinary()` / `FileReader` is set to `null` immediately after conversion completes, allowing earlier GC; `onunload` cleanup via `register()` releases plugin-level references
+
+### v1.1.0 — Dynamic Models & Parallel OCR
+
+- Dynamic OCR model list with enable/disable, reorder, and preset models
+- Parallel OCR for scanned PDFs with bounded concurrency (2 workers)
+- External file import via ribbon icon
+- Excel date formatting for serial numbers
+- Bilingual UI (English / 中文)
+
+### v1.0.0 — Initial Release
+
+- PDF text extraction and OCR fallback
+- Word (.docx) to Markdown
+- Excel (.xlsx) to Markdown tables
+- Image OCR
+- OpenAI-compatible and Gemini API support
+
 ## Tech Stack
 
 **TypeScript + esbuild** / **pdfjs-dist** / **mammoth.js** / **SheetJS**

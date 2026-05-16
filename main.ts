@@ -218,6 +218,10 @@ export default class PdfOcrPlugin extends Plugin {
     );
 
     this.addSettingTab(new PdfOcrSettingTab(this.app, this));
+
+    this.register(() => {
+      this.statusBar = null as any;
+    });
   }
 
   // ─── Core ───────────────────────────────────────────────
@@ -249,17 +253,17 @@ export default class PdfOcrPlugin extends Plugin {
       try {
         const hasKey = !!this.settings.models.filter((m) => m.enabled && m.apiKey).length;
         // Read file with FileReader for reliability in Electron
-        const buf = await new Promise<ArrayBuffer>((res, rej) => {
+        let buf = await new Promise<ArrayBuffer>((res, rej) => {
           const reader = new FileReader();
           reader.onload = () => res(reader.result as ArrayBuffer);
           reader.onerror = () => rej(new Error("Failed to read file"));
           reader.readAsArrayBuffer(file);
         });
         let markdown = "";
-        if (ext === ".pdf") markdown = await this.processPdf(buf, hasKey);
-        else if (ext === ".docx") markdown = await this.processDocx(buf);
-        else if (ext === ".xlsx") markdown = await this.processXlsx(buf);
-        else markdown = await this.processImage(buf, file.type);
+        if (ext === ".pdf") { markdown = await this.processPdf(buf, hasKey); buf = null as any; }
+        else if (ext === ".docx") { markdown = await this.processDocx(buf); buf = null as any; }
+        else if (ext === ".xlsx") { markdown = await this.processXlsx(buf); buf = null as any; }
+        else { markdown = await this.processImage(buf, file.type); buf = null as any; }
 
         const outName = file.name.replace(/\.[^.]+$/, "") + ".md";
         const outDir = this.settings.outputDir || "";
@@ -304,15 +308,15 @@ export default class PdfOcrPlugin extends Plugin {
     const notice = new Notice(`⏳ ${this.t("processing")}`, 0);
 
     try {
-      const data = await this.app.vault.readBinary(file);
+      let data = await this.app.vault.readBinary(file);
       const hasKey = activeModels.length > 0;
 
       let markdown = "";
       const start = Date.now();
-      if (ext === ".pdf") markdown = await this.processPdf(data, hasKey);
-      else if (ext === ".docx") markdown = await this.processDocx(data);
-      else if (ext === ".xlsx") markdown = await this.processXlsx(data);
-      else markdown = await this.processImage(data, this.getMimeType(ext));
+      if (ext === ".pdf") { markdown = await this.processPdf(data, hasKey); data = null as any; }
+      else if (ext === ".docx") { markdown = await this.processDocx(data); data = null as any; }
+      else if (ext === ".xlsx") { markdown = await this.processXlsx(data); data = null as any; }
+      else { markdown = await this.processImage(data, this.getMimeType(ext)); data = null as any; }
       this.log("info", `Converted in ${((Date.now() - start) / 1000).toFixed(1)}s, output length: ${markdown.length} chars`);
 
       const outName = file.basename + ".md";
@@ -351,71 +355,81 @@ export default class PdfOcrPlugin extends Plugin {
 
   // ─── PDF ─────────────────────────────────────────────
   async processPdf(buffer: ArrayBuffer, hasKey: boolean): Promise<string> {
+    const pdfData = new Uint8Array(buffer);
     const pdfjsLib = await import("pdfjs-dist");
     pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
-    const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+    const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
     this.log("info", `PDF: ${pdf.numPages} pages`);
 
-    // Extract text from all pages (same as web pdfExtractText)
-    const texts: string[] = [];
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      const lineMap: Record<number, { x: number; text: string }[]> = {};
-      for (const item of content.items) {
-        const s = (item as any).str;
-        if (!s || !s.trim()) continue;
-        const t = (item as any).transform;
-        const y = Math.round(t?.[5] || 0);
-        const x = t?.[4] || 0;
-        if (!lineMap[y]) lineMap[y] = [];
-        lineMap[y].push({ x, text: s });
-      }
-      const lines = Object.entries(lineMap)
-        .sort(([a], [b]) => Number(b) - Number(a))
-        .map(([_, items]) =>
-          items.sort((a, b) => a.x - b.x).map((item) => item.text).join("")
-        );
-      if (lines.length > 0) texts.push(lines.join("\n"));
-    }
-    let result = texts.join("\n\n---\n\n");
-
-    // Check total extracted text (same threshold as web: < 100 → scanned)
-    const stripped = result.replace(/[#*\-\s\n]/g, "");
-    if (stripped.length >= 100 || !hasKey) {
-      return result || "[无文字内容]";
-    }
-
-    // Scanned PDF — render + OCR page by page (bounded concurrency to limit memory)
-    this.log("info", "Scanned PDF detected, rendering + OCR page by page");
-    const totalPages = pdf.numPages;
-    const pageTexts: string[] = new Array(totalPages);
-    const concurrency = 2; // keep memory low: render → OCR → release
-    let nextIdx = 0;
-    const worker = async () => {
-      while (nextIdx < totalPages) {
-        const idx = nextIdx++;
-        this.log("info", `OCR page ${idx + 1}/${totalPages}`);
-        const page = await pdf.getPage(idx + 1);
-        const vp = page.getViewport({ scale: 2.5 });
-        const canvas = document.createElement("canvas");
-        canvas.width = vp.width;
-        canvas.height = vp.height;
-        try {
-          await page.render({ canvas, viewport: vp } as any).promise;
-          const b64 = canvas.toDataURL("image/png").split(",")[1];
-          pageTexts[idx] = await this.ocr(b64, "image/png");
-        } finally {
-          // Release canvas memory immediately
-          canvas.width = 0;
-          canvas.height = 0;
-          (page as any).cleanup?.();
+    try {
+      // Extract text from all pages (same as web pdfExtractText)
+      const texts: string[] = [];
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const lineMap: Record<number, { x: number; text: string }[]> = {};
+        for (const item of content.items) {
+          const s = (item as any).str;
+          if (!s || !s.trim()) continue;
+          const t = (item as any).transform;
+          const y = Math.round(t?.[5] || 0);
+          const x = t?.[4] || 0;
+          if (!lineMap[y]) lineMap[y] = [];
+          lineMap[y].push({ x, text: s });
         }
+        const lines = Object.entries(lineMap)
+          .sort(([a], [b]) => Number(b) - Number(a))
+          .map(([_, items]) =>
+            items.sort((a, b) => a.x - b.x).map((item) => item.text).join("")
+          );
+        if (lines.length > 0) texts.push(lines.join("\n"));
+        (page as any).cleanup?.();
       }
-    };
-    await Promise.all(Array.from({ length: concurrency }, () => worker()));
-    result = pageTexts.join("\n\n---\n\n");
-    return result || "[无法识别文字]";
+      let result = texts.join("\n\n---\n\n");
+
+      // Check total extracted text (same threshold as web: < 100 → scanned)
+      const stripped = result.replace(/[#*\-\s\n]/g, "");
+      if (stripped.length >= 100 || !hasKey) {
+        return result || "[无文字内容]";
+      }
+
+      // Scanned PDF — render + OCR page by page (bounded concurrency to limit memory)
+      this.log("info", "Scanned PDF detected, rendering + OCR page by page");
+      texts.length = 0;
+      result = "";
+
+      const totalPages = pdf.numPages;
+      const pageTexts: string[] = new Array(totalPages);
+      const concurrency = 2; // keep memory low: render → OCR → release
+      let nextIdx = 0;
+      const worker = async () => {
+        while (nextIdx < totalPages) {
+          const idx = nextIdx++;
+          this.log("info", `OCR page ${idx + 1}/${totalPages}`);
+          const page = await pdf.getPage(idx + 1);
+          const vp = page.getViewport({ scale: 2.5 });
+          const canvas = document.createElement("canvas");
+          canvas.width = vp.width;
+          canvas.height = vp.height;
+          let b64: string | null = null;
+          try {
+            await page.render({ canvas, viewport: vp } as any).promise;
+            b64 = canvas.toDataURL("image/png").split(",")[1];
+            pageTexts[idx] = await this.ocr(b64, "image/png");
+          } finally {
+            b64 = null;
+            canvas.width = 0;
+            canvas.height = 0;
+            (page as any).cleanup?.();
+          }
+        }
+      };
+      await Promise.all(Array.from({ length: concurrency }, () => worker()));
+      result = pageTexts.join("\n\n---\n\n");
+      return result || "[无法识别文字]";
+    } finally {
+      pdf.destroy();
+    }
   }
 
   // ─── Word ────────────────────────────────────────────
@@ -437,57 +451,62 @@ export default class PdfOcrPlugin extends Plugin {
   async processXlsx(buffer: ArrayBuffer): Promise<string> {
     const wb = XLSX.read(new Uint8Array(buffer), { type: "array" });
     const lines: string[] = [];
-    for (let s = 0; s < wb.SheetNames.length; s++) {
-      const name = wb.SheetNames[s];
-      const sheet = wb.Sheets[name];
-      if (!sheet["!ref"]) continue;
-      const range = XLSX.utils.decode_range(sheet["!ref"]);
-      const data: string[][] = [];
-      for (let r = range.s.r; r <= range.e.r; r++) {
-        const row: string[] = [];
-        for (let c = range.s.c; c <= range.e.c; c++) {
-          const addr = XLSX.utils.encode_cell({ r, c });
-          const cell = sheet[addr];
-          let val = "";
-          if (cell) {
-            if (cell.t === "s") {
-              val = String(cell.w ?? cell.v ?? "");
-            } else if (cell.t === "n" && typeof cell.v === "number" && cell.v > 40000 && cell.v < 60000) {
-              // Excel date serial number (40000-60000 ≈ 2009-2064)
-              const d = XLSX.SSF.parse_date_code(cell.v);
-              if (d) {
-                const pad = (n: number) => String(Math.floor(n)).padStart(2, "0");
-                val = `${d.y}/${d.m}/${d.d} ${pad(d.H)}:${pad(d.M)}:${pad(d.S)}`;
+    try {
+      for (let s = 0; s < wb.SheetNames.length; s++) {
+        const name = wb.SheetNames[s];
+        const sheet = wb.Sheets[name];
+        if (!sheet["!ref"]) continue;
+        const range = XLSX.utils.decode_range(sheet["!ref"]);
+        const data: string[][] = [];
+        for (let r = range.s.r; r <= range.e.r; r++) {
+          const row: string[] = [];
+          for (let c = range.s.c; c <= range.e.c; c++) {
+            const addr = XLSX.utils.encode_cell({ r, c });
+            const cell = sheet[addr];
+            let val = "";
+            if (cell) {
+              if (cell.t === "s") {
+                val = String(cell.w ?? cell.v ?? "");
+              } else if (cell.t === "n" && typeof cell.v === "number" && cell.v > 40000 && cell.v < 60000) {
+                // Excel date serial number (40000-60000 ≈ 2009-2064)
+                const d = XLSX.SSF.parse_date_code(cell.v);
+                if (d) {
+                  const pad = (n: number) => String(Math.floor(n)).padStart(2, "0");
+                  val = `${d.y}/${d.m}/${d.d} ${pad(d.H)}:${pad(d.M)}:${pad(d.S)}`;
+                } else {
+                  val = String(cell.w ?? cell.v ?? "");
+                }
               } else {
                 val = String(cell.w ?? cell.v ?? "");
               }
-            } else {
-              val = String(cell.w ?? cell.v ?? "");
             }
+            row.push(val);
           }
-          row.push(val);
+          data.push(row);
         }
-        data.push(row);
+        if (!data.length) continue;
+        if (s > 0) lines.push("---");
+        // Trim fully-empty leading & trailing columns
+        const colCount = Math.max(...data.map((r) => r.length));
+        let minCol = 0;
+        let maxCol = colCount - 1;
+        while (minCol <= maxCol && data.every((r: string[]) => !r[minCol] || r[minCol] === "")) minCol++;
+        while (maxCol >= minCol && data.every((r: string[]) => !r[maxCol] || r[maxCol] === "")) maxCol--;
+        const trimmed = data.map((r: string[]) => r.slice(minCol, maxCol + 1));
+        lines.push(`## 📊 ${name}`);
+        const esc = (x: string) => String(x).replace(/\|/g, "\\|").replace(/\n/g, "<br>");
+        lines.push("| " + trimmed[0].map(esc).join(" | ") + " |");
+        lines.push("|" + trimmed[0].map(() => ":---|").join(""));
+        for (let r = 1; r < trimmed.length; r++) {
+          const v = trimmed[r].map(esc);
+          if (v.some((x: string) => x.trim())) lines.push("| " + v.join(" | ") + " |");
+        }
       }
-      if (!data.length) continue;
-      if (s > 0) lines.push("---");
-      // Trim fully-empty leading & trailing columns
-      const colCount = Math.max(...data.map((r) => r.length));
-      let minCol = 0;
-      let maxCol = colCount - 1;
-      while (minCol <= maxCol && data.every((r: string[]) => !r[minCol] || r[minCol] === "")) minCol++;
-      while (maxCol >= minCol && data.every((r: string[]) => !r[maxCol] || r[maxCol] === "")) maxCol--;
-      const trimmed = data.map((r: string[]) => r.slice(minCol, maxCol + 1));
-      lines.push(`## 📊 ${name}`);
-      const esc = (x: string) => String(x).replace(/\|/g, "\\|").replace(/\n/g, "<br>");
-      lines.push("| " + trimmed[0].map(esc).join(" | ") + " |");
-      lines.push("|" + trimmed[0].map(() => ":---|").join(""));
-      for (let r = 1; r < trimmed.length; r++) {
-        const v = trimmed[r].map(esc);
-        if (v.some((x: string) => x.trim())) lines.push("| " + v.join(" | ") + " |");
-      }
+      return lines.join("\n");
+    } finally {
+      wb.SheetNames.forEach(name => { delete wb.Sheets[name]; });
+      wb.SheetNames.length = 0;
     }
-    return lines.join("\n");
   }
 
   // ─── Image / OCR ─────────────────────────────────────
@@ -502,16 +521,8 @@ export default class PdfOcrPlugin extends Plugin {
   }
 
   async processImage(buffer: ArrayBuffer, mime: string): Promise<string> {
-    const blob = new Blob([buffer], { type: mime });
-    return new Promise((res, rej) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const b64 = (reader.result as string).split(",")[1];
-        this.ocr(b64, mime).then(res).catch(rej);
-      };
-      reader.onerror = () => rej(new Error("Failed to encode image"));
-      reader.readAsDataURL(blob);
-    });
+    const b64 = Buffer.from(buffer).toString("base64");
+    return this.ocr(b64, mime);
   }
 
   async ocrImage(b64: string, mime: string): Promise<string> {
