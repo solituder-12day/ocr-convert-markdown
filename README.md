@@ -103,9 +103,9 @@ Reduced runtime memory footprint across all conversion pipelines:
 
 **TypeScript + esbuild** / **pdfjs-dist** / **mammoth.js** / **SheetJS**
 
-## Author
+## 作者
 
-[solituder-12day](https://github.com/solituder-12day)
+solituder-12day
 
 ## License
 
