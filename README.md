@@ -105,7 +105,7 @@ Reduced runtime memory footprint across all conversion pipelines:
 
 ## Author
 
-AIXMF
+[solituder-12day](https://github.com/solituder-12day)
 
 ## License
 
