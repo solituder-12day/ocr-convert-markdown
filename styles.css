@@ -1,11 +1,13 @@
-.model-card {
+.model-card,
+.ocr-model-card {
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   margin-bottom: 1em;
   overflow: hidden;
 }
 
-.model-card-header {
+.model-card-header,
+.ocr-model-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -14,22 +16,27 @@
   border-bottom: 1px solid var(--background-modifier-border);
 }
 
-.model-card-body {
+.model-card-body,
+.ocr-model-card-body {
   padding: 0.8em 1em 1em;
 }
 
-.model-card-body .setting-item {
+.model-card-body .setting-item,
+.ocr-model-card-body .setting-item {
   border: none;
   padding: 0;
   margin-bottom: 0.6em;
 }
 
-.model-card-body .setting-item-control {
+.model-card-body .setting-item-control,
+.ocr-model-card-body .setting-item-control {
   flex: 1;
 }
 
 .model-card-body textarea,
-.model-card-body input[type="text"] {
+.model-card-body input[type="text"],
+.ocr-model-card-body textarea,
+.ocr-model-card-body input[type="text"] {
   width: 100%;
   box-sizing: border-box;
   font-family: monospace;

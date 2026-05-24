@@ -9,7 +9,16 @@ const production = process.argv[2] === 'production';
 // Obsidian's sandboxed renderer can't reliably load external files at runtime,
 // but data URLs work for Web Workers.
 const workerSrc = resolve('node_modules/pdfjs-dist/build/pdf.worker.min.mjs');
-const workerCode = readFileSync(workerSrc, 'utf-8');
+const workerCompatibilityPrelude = `
+if (!Math.sumPrecise) {
+  Math.sumPrecise = function sumPrecise(values) {
+    let sum = 0;
+    for (const value of values) sum += value;
+    return sum;
+  };
+}
+`;
+const workerCode = workerCompatibilityPrelude + readFileSync(workerSrc, 'utf-8');
 const workerB64 = Buffer.from(workerCode).toString('base64');
 const workerDataUrl = `data:application/javascript;base64,${workerB64}`;
 
