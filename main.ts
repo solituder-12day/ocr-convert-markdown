@@ -1386,7 +1386,7 @@ class PdfOcrSettingTab extends PluginSettingTab {
           style:
             "flex:1;padding:0.4em 0.6em;border-radius:4px;border:1px solid var(--background-modifier-border);" +
             "background:var(--background-primary);font-family:monospace;font-size:0.85em;resize:vertical;",
-          placeholder: "sk-... or AIza...",
+          placeholder: "Enter service credential",
         },
       });
       keyInput.value = model.apiKey;

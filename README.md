@@ -1,12 +1,12 @@
 # OCR convert Markdown — Obsidian Plugin
 
-Convert PDF, Word, Excel, and images to Markdown notes. Supports text extraction and AI-powered OCR via customizable model list.
+Convert PDF, Word, Excel, and images to Markdown notes. Supports direct text extraction and configurable OCR fallback for scanned or image-based content.
 
 ## Quick Start
 
 1. Install and enable the plugin
 2. Go to **Settings → OCR convert Markdown**
-3. Enter at least one API Key and enable a model
+3. Configure an OCR model in plugin settings when OCR is needed
 4. Click the ribbon icon or use `Ctrl+P` → **Import external file**
 
 ## Usage
@@ -23,8 +23,8 @@ Convert PDF, Word, Excel, and images to Markdown notes. Supports text extraction
 - **Word** — Preserves headings, bold, and lists
 - **Excel** — Multi-sheet extraction as Markdown tables; dates auto-formatted
 - **Images** — PNG / JPG / WEBP → OCR to Markdown
-- **Custom Models** — Add any OCR-capable API (OpenAI-compatible or Gemini)
-- **Model Fallback** — Models tried in configured order; next on failure
+- **Custom OCR Models** — Configure compatible OCR services in settings
+- **Model Fallback** — Enabled models are tried in configured order; next on failure
 
 ## Configuration
 
@@ -38,28 +38,21 @@ Convert PDF, Word, Excel, and images to Markdown notes. Supports text extraction
 
 ### OCR Models
 
-Add any number of OCR models. Each model has:
+Add one or more OCR models in the settings tab. Each model has:
 
 | Field | Description |
 |-------|-------------|
 | Name | Display name |
-| API Protocol | `OpenAI Compatible` or `Gemini` |
-| API URL | Endpoint URL |
-| API Key | Authentication key |
-| Model Name | Model identifier sent to the API |
+| Protocol | Request format used by the OCR service |
+| Endpoint | Service endpoint |
+| Credential | Stored locally in Obsidian plugin settings |
+| Model Name | Model identifier sent to the service |
 | Max Tokens | Max output tokens per request |
 | Enabled | Include in OCR fallback chain |
 
 Use the ↑↓ arrows to reorder. Models are tried top-to-bottom; on failure the next model is used.
 
-**Pre-populated defaults:**
-
-| Model | Protocol |
-|-------|----------|
-| GLM-4V | OpenAI |
-| GLM-4V-Flash | OpenAI |
-| MiniMax-VL | OpenAI |
-| Gemini 2.5 Flash | Gemini |
+The README intentionally avoids listing provider endpoints or credentials. Keep service URLs and keys in local Obsidian settings only.
 
 ## Installation
 
@@ -97,7 +90,7 @@ Reduced runtime memory footprint across all conversion pipelines:
 - Word (.docx) to Markdown
 - Excel (.xlsx) to Markdown tables
 - Image OCR
-- OpenAI-compatible and Gemini API support
+- Configurable OCR service support
 
 ## Tech Stack
 
